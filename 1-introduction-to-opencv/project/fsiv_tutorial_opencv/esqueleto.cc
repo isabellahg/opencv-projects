@@ -227,8 +227,6 @@ main(int argc, char *const *argv) {
             return 0;
         }
 
-
-        /*Ahora toca que tu rellenes con lo que hay que hacer ...*/
         cv::Mat img = cv::imread(img1, cv::IMREAD_ANYCOLOR);
         if (img.empty()) {
             std::cerr << "Error: no he podido abrir el fichero '" << img1 << "'." << std::endl;
