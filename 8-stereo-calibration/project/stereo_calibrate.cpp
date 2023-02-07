@@ -42,6 +42,20 @@ bool find_chessboard_corners(const Mat &img,
     return was_found;
 }
 
+// Splits a stereo image in half.
+vector<Mat> splitImages(const Mat &img)
+{
+    int img_width = img.cols / 2;
+    vector<Mat> images(2);
+    images[0] = Mat(img, Rect(0, 0, img_width, img.rows));
+    images[1] = Mat(img, Rect(img_width, 0, img_width, img.rows));
+    return images;
+}
+
+/**
+ * Will read all images from directory and split them in half
+ *
+ */
 vector<vector<Mat>> readStereoImages()
 {
 
@@ -61,11 +75,9 @@ vector<vector<Mat>> readStereoImages()
             std::cerr << "Error: no he podido abrir el fichero '" << file << "'." << std::endl;
         }
 
-        Mat left_img, right_img;
-        int img_width = img.cols / 2;
-        left_img = Mat(img, Rect(0, 0, img_width, img.rows));
-        right_img = Mat(img, Rect(img_width, 0, img_width, img.rows));
-        stereo_images.push_back({left_img, right_img});
+        auto images = splitImages(img);
+
+        stereo_images.push_back({images[0], images[1]});
     }
     return stereo_images;
 }
@@ -121,7 +133,6 @@ void calibrate(vector<vector<Mat>> images)
         find_chessboard_corners(image_pair[1], corners[1]);
         points[0].push_back(corners[0]);
         points[1].push_back(corners[1]);
-
     }
     Size imageSize = images[0][0].size();
 
