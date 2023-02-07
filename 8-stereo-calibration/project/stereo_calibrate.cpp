@@ -70,27 +70,37 @@ vector<vector<Mat>> readStereoImages()
     return stereo_images;
 }
 
-vector<Point3f> objectPointsForImg()
+/**
+ *
+ * objectPoints, is an N-by-3 matrix containing the physical coordinates
+ * of each of the K points on each of the M images of the 3D object such
+ * that N = K × M
+ *
+ */
+vector<vector<Point3f>> getObjectPoints(int nImages)
 {
-    vector<Point3f> ret_v;
-    for (int i = 1; i <= CHECKER_BOARD_SIZE.height; i++)
+    vector<vector<Point3f>> objPoints;
+    objPoints.resize(nImages);
+    for (int img_idx = 0; img_idx < nImages; img_idx++)
     {
-        for (int j = 1; j <= CHECKER_BOARD_SIZE.width; j++)
+        for (int i = 0; i < CHECKER_BOARD_SIZE.height; i++)
         {
-            ret_v.push_back(Point3f(j * SQUARE_SIZE, i * SQUARE_SIZE, 0.0));
+            for (int j = 0; j < CHECKER_BOARD_SIZE.width; j++)
+            {
+                objPoints[img_idx].push_back(Point3f(j * SQUARE_SIZE, i * SQUARE_SIZE, 0.0));
+            }
         }
     }
-
-    return ret_v;
+    return objPoints;
 }
 
-void saveToYaml(Mat lCameraMatrix, Mat rCameraMatrix, Mat lDistCoeffs, Mat rdistCoeffs, Mat R, Mat T, Mat E, Mat F)
+void saveToYaml(Mat cameraMatrix[2], Mat distCoeffs[2], Mat R, Mat T, Mat E, Mat F)
 {
     cv::FileStorage fs("Mystereoparams.yml", cv::FileStorage::WRITE);
-    fs << "LEFT_K " << lCameraMatrix;
-    fs << "LEFT_D " << lDistCoeffs;
-    fs << "RIGHT_K " << rCameraMatrix;
-    fs << "RIGHT_D " << rdistCoeffs;
+    fs << "LEFT_K " << cameraMatrix[0];
+    fs << "LEFT_D " << distCoeffs[0];
+    fs << "RIGHT_K " << cameraMatrix[1];
+    fs << "RIGHT_D " << distCoeffs[1];
     fs << "R " << R;
     fs << "T " << T;
     fs << "E " << E;
@@ -100,50 +110,42 @@ void saveToYaml(Mat lCameraMatrix, Mat rCameraMatrix, Mat lDistCoeffs, Mat rdist
 
 void calibrate(vector<vector<Mat>> images)
 {
-    vector<vector<Point2f>> lpoints, rpoints;
-    vector<vector<Point3f>> objectPoints;
-    vector<Point3f> calibration_points = objectPointsForImg();
+    vector<vector<Point2f>> points[2];
+    int nimages = images.size();
+    vector<vector<Point3f>> objectPoints = getObjectPoints(nimages);
 
     for (auto &image_pair : images)
     {
-        vector<Point2f> lcorners, rcorners;
-        find_chessboard_corners(image_pair[0], lcorners);
-        find_chessboard_corners(image_pair[1], rcorners);
-        lpoints.push_back(lcorners);
-        rpoints.push_back(rcorners);
+        vector<Point2f> corners[2];
+        find_chessboard_corners(image_pair[0], corners[0]);
+        find_chessboard_corners(image_pair[1], corners[1]);
+        points[0].push_back(corners[0]);
+        points[1].push_back(corners[1]);
 
-        // assert(CHECKER_BOARD_SIZE == lpoints[0].size());
-        // assert(CHECKER_BOARD_SIZE == rpoints[0].size());
-
-        objectPoints.push_back(calibration_points);
     }
-    // Calibrations Params
-    Mat lCameraMatrix, rCameraMatrix, lDistCoeffs, rdistCoeffs, R, T, E, F;
     Size imageSize = images[0][0].size();
 
-    calibrateCamera(objectPoints, lpoints,
-                    imageSize, lCameraMatrix, lDistCoeffs, {}, {});
+    Mat cameraMatrix[2], distCoeffs[2];
+    cameraMatrix[0] = initCameraMatrix2D(objectPoints, points[0], imageSize, 0);
+    cameraMatrix[1] = initCameraMatrix2D(objectPoints, points[1], imageSize, 0);
+    Mat R, T, E, F;
 
-    calibrateCamera(objectPoints, rpoints,
-                    imageSize, rCameraMatrix, rdistCoeffs, {}, {});
+    stereoCalibrate(objectPoints, points[0], points[1],
+                    cameraMatrix[0], distCoeffs[0], cameraMatrix[1],
+                    distCoeffs[1], imageSize, R, T, E, F, cv::CALIB_USE_INTRINSIC_GUESS,
+                    cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 60, 1e-6));
 
-    stereoCalibrate(objectPoints, lpoints, rpoints,
-                    lCameraMatrix, lDistCoeffs, rCameraMatrix,
-                    rdistCoeffs, imageSize, R, T, E, F);
+    std::cout << "LEFT_K " << cameraMatrix[0] << endl;
+    std::cout << "LEFT_D " << cameraMatrix[1] << endl;
+    std::cout << "RIGHT_K " << distCoeffs[0] << endl;
+    std::cout << "RIGHT_D " << distCoeffs[1] << endl;
+    std::cout << "R " << R << endl;
+    std::cout << "T " << T << endl;
+    std::cout << "E " << E << endl;
+    std::cout << "F " << F << endl;
 
-    std::cout << "lCameraMatrix: " << lCameraMatrix << endl;
-    std::cout << "rCameraMatrix: " << rCameraMatrix << endl;
-    std::cout << "lDistCoeffs: " << lDistCoeffs << endl;
-    std::cout << "rdistCoeffs: " << rdistCoeffs << endl;
-    std::cout << "R: " << R << endl;
-    std::cout << "T: " << T << endl;
-    std::cout << "E: " << E << endl;
-    std::cout << "F: " << F << endl;
-
-    saveToYaml(lCameraMatrix,
-               rCameraMatrix,
-               lDistCoeffs,
-               rdistCoeffs,
+    saveToYaml(cameraMatrix,
+               distCoeffs,
                R,
                T,
                E,
@@ -158,11 +160,14 @@ int main(int argc, char *const *argv)
     {
         vector<vector<Mat>> images;
         images = readStereoImages();
-        if (images.size() == 0)
+        if (images.size() > 0)
         {
-            return;
+            calibrate(images);
         }
-        calibrate(images);
+        else
+        {
+            retCode = EXIT_FAILURE;
+        }
     }
     catch (std::exception &e)
     {
