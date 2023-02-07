@@ -11,8 +11,24 @@
             "id": "9ee04418f9327424",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "8-stereo-calibration/Readme.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "e6be6acd18e814ad",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "8-stereo-calibration/Readme.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -81,6 +97,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "8-stereo-calibration/Readme.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -97,6 +114,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "8-stereo-calibration/Readme.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,7 +136,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "8-stereo-calibration/Readme.md"
+              }
             }
           }
         ]
@@ -139,5 +159,9 @@
     }
   },
   "active": "9ee04418f9327424",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "Summary.md",
+    "8-stereo-calibration/Readme.md",
+    "8-stereo-calibration/resources/Semana 2&3_ Visión Estéreo (1).pdf"
+  ]
 }
