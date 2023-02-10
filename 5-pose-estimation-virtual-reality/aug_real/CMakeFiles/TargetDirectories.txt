@@ -1,0 +1,4 @@
+/home/isa/Documents/vision-3d-projects/Vision3dVault/5-pose-estimation-virtual-reality/aug_real/CMakeFiles/aug_real.dir
+/home/isa/Documents/vision-3d-projects/Vision3dVault/5-pose-estimation-virtual-reality/aug_real/CMakeFiles/test_common_code.dir
+/home/isa/Documents/vision-3d-projects/Vision3dVault/5-pose-estimation-virtual-reality/aug_real/CMakeFiles/edit_cache.dir
+/home/isa/Documents/vision-3d-projects/Vision3dVault/5-pose-estimation-virtual-reality/aug_real/CMakeFiles/rebuild_cache.dir
