@@ -33,6 +33,33 @@ const cv::String keys =
     "{@intrinsics    |<none>| intrinsics filename.}"
     "{@input         |<none>| input stream (filename or camera idx)}";
 
+void fsiv_draw_pyramid(cv::Mat &img,
+                       const cv::Mat &camera_matrix, const cv::Mat &dist_coeffs,
+                       const cv::Mat &rvec, const cv::Mat &tvec,
+                       const float size, const int line_width)
+{
+
+    std::vector<cv::Point3f> pyramid_points;
+
+
+    pyramid_points.push_back(cv::Point3f(size, size, 0));
+    pyramid_points.push_back(cv::Point3f(size * 2, size, 0));
+    pyramid_points.push_back(cv::Point3f(size * 2, size * 2, 0));
+    pyramid_points.push_back(cv::Point3f(size, size * 2, 0));
+    pyramid_points.push_back(cv::Point3f(size + size / 2, size + size / 2, -size / 2));
+
+    std::vector<cv::Point2f> image_points;
+    cv::projectPoints(pyramid_points, rvec, tvec, camera_matrix, dist_coeffs, image_points);
+
+    cv::line(img, image_points[0], image_points[1], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, image_points[1], image_points[2], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, image_points[2], image_points[3], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, image_points[3], image_points[0], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, image_points[0], image_points[4], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, image_points[1], image_points[4], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, image_points[2], image_points[4], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, image_points[3], image_points[4], cv::Scalar(255, 0, 0), 2);
+}
 int main(int argc, char *const *argv)
 {
     int retCode = EXIT_SUCCESS;
@@ -147,7 +174,10 @@ int main(int argc, char *const *argv)
 
                 fsiv_draw_axes(input_frame, K, dist_coeffs, rvec,
                                tvec, size, 3);
-                        }
+
+                fsiv_draw_pyramid(input_frame, K, dist_coeffs, rvec,
+                                  tvec, size, 3);
+            }
             //
             cv::imshow("VIDEO", input_frame);
             key = cv::waitKey(wait_time) & 0xff;

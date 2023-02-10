@@ -76,10 +76,35 @@ void fsiv_draw_axes(cv::Mat &img,
                     const cv::Mat &rvec, const cv::Mat &tvec,
                     const float size, const int line_width)
 {
-    // TODO DONE
-    cv::drawFrameAxes(img, camera_matrix, dist_coeffs, rvec, tvec, size, line_width);
 
+    // // TODO DONE
+    // METHOD 1
+    // With this method the y coordinate is inverted:
+    // cv::drawFrameAxes(img, camera_matrix, dist_coeffs, rvec, tvec, size, line_width);
     //
+
+    // METHOD 2
+    // This gives me more control and I can define my own axes.
+    //
+    std::vector<Point3f> axesPoints = {
+        Point3f(0, 0, 0),
+        Point3f(size, 0, 0),
+        Point3f(0, size, 0),
+        Point3f(0, 0, -size)};
+
+    std::vector<Point2f> imgPoints;
+    projectPoints(axesPoints, rvec, tvec, camera_matrix, dist_coeffs, imgPoints);
+
+    // draw axes lines
+    line(img, imgPoints[0], imgPoints[1], Scalar(0, 0, 255), line_width);
+    line(img, imgPoints[0], imgPoints[2], Scalar(0, 255, 0), line_width);
+    line(img, imgPoints[0], imgPoints[3], Scalar(255, 0, 0), line_width);
+
+    std::vector<cv::Point3f> axis = {
+        cv::Point3f(0, 0, 0),
+        cv::Point3f(size, 0, 0),
+        cv::Point3f(0, size, 0),
+        cv::Point3f(0, 0, -size)};
 }
 
 void fsiv_load_calibration_parameters(cv::FileStorage &fs,
